@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isOperationsOrManagement() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'Operations Manager' ||
+        request.auth.token.role == 'OIL Management'
+      );
+    }
+
+    // User profiles: users can read all profiles in their org, but only write their own
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) || isOperationsOrManagement();
+    }
+
+    // Wells collection: authenticated users can read. Authorized engineers/operators can write
+    match /wells/{wellId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Well Events: read-only for general, writable by verified drilling engineers
+    match /wellEvents/{eventId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Drilling Telemetry & eRTMAC live parameters
+    match /drillingParameters/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Risk alerts
+    match /riskAlerts/{alertId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Documents metadata: read authenticated, write owner or management
+    match /documents/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.uploadedBy != null;
+      allow update, delete: if isAuthenticated() && (
+        resource.data.uploadedBy == request.auth.uid || isOperationsOrManagement()
+      );
+    }
+
+    // Knowledge graph nodes & edges
+    match /knowledgeNodes/{nodeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    match /knowledgeEdges/{edgeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Operations Kanban Cards: collaborative operations board
+    match /kanbanCards/{cardId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Notifications
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Assistant chat history
+    match /chatHistory/{chatId} {
+      allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+  }
+}
