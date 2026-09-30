@@ -4,6 +4,8 @@
 > **"Drilling Knowledge. In Real Time."**  
 > *Turning every completed well into institutional intelligence for the next.*
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/MAYnk111/EKANSH_eRTMAC)
+
 ---
 
 ## 🎯 Executive Overview
